@@ -1,0 +1,88 @@
+# beebots for Coolify — self-hosted, EU-resident deployment.
+#
+# Differences from the upstream docker-compose.yml:
+#   1. No host ports are published. Coolify's Traefik terminates TLS and routes
+#      the public FQDN to the `web` service on port 80 (which is why the web
+#      container's Caddy stays on plain HTTP via SITE_ADDRESS=:80).
+#   2. A `jev-shim` service answers the TypeSafe `POST /v1/systemone` contract
+#      using a self-hosted llama.cpp Jev-mode endpoint, so no decision ever
+#      leaves the homelab. The engine is pointed at it with TYPESAFE_BASE_URL.
+#   3. Paper trading only: DRY_RUN=true / MODE=dry are pinned here on purpose.
+#      Going to demo or live money is a deliberate, separate change.
+#
+# Coolify: create an Application from this repo with build pack `dockercompose`
+# and compose location /docker-compose.coolify.yml, then set the domain
+# beebots.laserraptorai.duckdns.org on the `web` service.
+name: beebots
+
+services:
+  engine:
+    image: ghcr.io/imikerussell/beebots-engine:latest
+    restart: always
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    depends_on: [jev-shim]
+    environment:
+      # Paper trading, pinned.
+      DRY_RUN: "true"
+      MODE: dry
+      LIVE_ACK: ""
+      # Decisions come from the local shim, not api.typesafe.ai.
+      # The SDK only needs a non-empty key; the shim ignores it.
+      TYPESAFE_BASE_URL: http://jev-shim:8787
+      TYPESAFE_API_KEY: local-jev-shim
+      JEV_MODEL: local-qwen3-8b-jev
+      JEV_TIMEOUT_MS: "8000"
+      # Local inference is free, so the dollar cap must not pretend otherwise.
+      JEV_USD_PER_MTOK: "0"
+      JEV_DAILY_USD_CAP: "2"
+      TICK_MS: "10000"
+      DATA_REFRESH_MS: "60000"
+      SETUP_WINDOW_MIN: "120"
+      UPDATE_CHECK: "true"
+      ENGINE_BIND: 0.0.0.0
+      ENGINE_PORT: "8080"
+      DB_PATH: /data/bees-{mode}.sqlite
+      SETTINGS_PATH: /data/settings.json
+      LOG_LEVEL: info
+    volumes:
+      - bees-data:/data
+    expose:
+      - "8080"
+
+  jev-shim:
+    build:
+      context: ./jev-shim
+    restart: always
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    environment:
+      # llama.cpp Jev-mode decision server (gpu-02 CT117), LAN only.
+      JEV_UPSTREAM_URL: ${JEV_UPSTREAM_URL:-http://192.168.178.177:8087/completion}
+      JEV_SHIM_BIND: 0.0.0.0
+      JEV_SHIM_PORT: "8787"
+      JEV_SHIM_MODEL_LABEL: local-qwen3-8b-jev
+      JEV_SHIM_TIMEOUT_MS: "8000"
+    expose:
+      - "8787"
+
+  web:
+    image: ghcr.io/imikerussell/beebots-web:latest
+    restart: always
+    depends_on: [engine]
+    user: "1000:1000"
+    sysctls:
+      net.ipv4.ip_unprivileged_port_start: 0
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    environment:
+      # Plain HTTP inside the compose network; Traefik does the TLS.
+      SITE_ADDRESS: ":80"
+    volumes:
+      - caddy-data:/data
+    expose:
+      - "80"
+
+volumes:
+  bees-data:
+  caddy-data:
