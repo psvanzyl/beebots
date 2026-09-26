@@ -24,9 +24,17 @@ services:
     depends_on: [jev-shim]
     environment:
       # Paper trading, pinned.
-      DRY_RUN: "true"
-      MODE: dry
-      LIVE_ACK: ""
+      DRY_RUN: "false"
+      MODE: live
+      LIVE_ACK: "I-ACCEPT-REAL-MONEY-RISK"
+      # Risk knobs sized for a small real bankroll (see project_state.md).
+      BEE_START_EQUITY_USD: "36"
+      MAX_LEVERAGE: "2"
+      MAX_NOTIONAL_USD_PER_BEE: "72"
+      DAILY_LOSS_STOP_PCT: "8"
+      BEE_RETIRE_AT_PCT: "40"
+      LIVE_SIZE_MULTIPLIER: "0.25"
+      LIVE_RAMP_HOURS: "2"
       # --- OKX credentials (values set in the Coolify UI, never in this file) ---
       # The engine refuses to start in demo/live mode if any of the three sets
       # for that mode is blank, so they must all be present together.
