@@ -76,10 +76,14 @@ services:
     security_opt: [no-new-privileges:true]
     cap_drop: [ALL]
     environment:
-      # Plain HTTP inside the compose network; Traefik does the TLS.
+      # Plain HTTP on a LAN port; no public domain, no TLS, no Traefik route.
       SITE_ADDRESS: ":80"
     volumes:
       - caddy-data:/data
+    # LAN-only access: http://192.168.178.132:8090 — deliberately no public FQDN,
+    # so positions, equity and the decision stream stay inside the homelab.
+    ports:
+      - "8090:80"
     expose:
       - "80"
 
