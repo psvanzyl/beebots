@@ -27,6 +27,33 @@ services:
       DRY_RUN: "true"
       MODE: dry
       LIVE_ACK: ""
+      # --- OKX credentials (values set in the Coolify UI, never in this file) ---
+      # The engine refuses to start in demo/live mode if any of the three sets
+      # for that mode is blank, so they must all be present together.
+      # Demo keys (MODE=demo), one sub-account per bee.
+      BEE1_OKX_DEMO_API_KEY: ${BEE1_OKX_DEMO_API_KEY:-}
+      BEE1_OKX_DEMO_API_SECRET: ${BEE1_OKX_DEMO_API_SECRET:-}
+      BEE1_OKX_DEMO_API_PASSPHRASE: ${BEE1_OKX_DEMO_API_PASSPHRASE:-}
+      BEE2_OKX_DEMO_API_KEY: ${BEE2_OKX_DEMO_API_KEY:-}
+      BEE2_OKX_DEMO_API_SECRET: ${BEE2_OKX_DEMO_API_SECRET:-}
+      BEE2_OKX_DEMO_API_PASSPHRASE: ${BEE2_OKX_DEMO_API_PASSPHRASE:-}
+      BEE3_OKX_DEMO_API_KEY: ${BEE3_OKX_DEMO_API_KEY:-}
+      BEE3_OKX_DEMO_API_SECRET: ${BEE3_OKX_DEMO_API_SECRET:-}
+      BEE3_OKX_DEMO_API_PASSPHRASE: ${BEE3_OKX_DEMO_API_PASSPHRASE:-}
+      # Live keys (MODE=live), one EEA sub-account per bee. Left here ready so
+      # going live later is a values-only change in Coolify.
+      BEE1_OKX_API_KEY: ${BEE1_OKX_API_KEY:-}
+      BEE1_OKX_API_SECRET: ${BEE1_OKX_API_SECRET:-}
+      BEE1_OKX_API_PASSPHRASE: ${BEE1_OKX_API_PASSPHRASE:-}
+      BEE2_OKX_API_KEY: ${BEE2_OKX_API_KEY:-}
+      BEE2_OKX_API_SECRET: ${BEE2_OKX_API_SECRET:-}
+      BEE2_OKX_API_PASSPHRASE: ${BEE2_OKX_API_PASSPHRASE:-}
+      BEE3_OKX_API_KEY: ${BEE3_OKX_API_KEY:-}
+      BEE3_OKX_API_SECRET: ${BEE3_OKX_API_SECRET:-}
+      BEE3_OKX_API_PASSPHRASE: ${BEE3_OKX_API_PASSPHRASE:-}
+      # OKX EEA endpoints (engine defaults, pinned explicitly).
+      OKX_SITE: eea
+      OKX_API_BASE: https://eea.okx.com
       # Decisions come from the local shim, not api.typesafe.ai.
       # The SDK only needs a non-empty key; the shim ignores it.
       TYPESAFE_BASE_URL: http://jev-shim:8787
